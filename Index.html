@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doimobod EDU | DTM Javoblar Varaqasi</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+        .dtm-card {
+            background-color: #fff;
+            width: 100%;
+            max-width: 480px;
+            border: 2px solid #e67e22;
+            border-radius: 8px;
+            padding: 15px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .dtm-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #e67e22;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .dtm-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #e67e22;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .dtm-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            color: #d35400;
+            flex-grow: 1;
+        }
+        .info-section {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            background: #fafafa;
+        }
+        .info-group {
+            margin-bottom: 10px;
+        }
+        .info-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 3px;
+        }
+        .info-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .warning-text {
+            font-size: 11px;
+            color: #7f8c8d;
+            text-align: center;
+            margin-bottom: 15px;
+            line-height: 1.3;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 10px;
+        }
+        .matrix-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .block-title {
+            text-align: center;
+            background: #e67e22;
+            color: white;
+            font-size: 12px;
+            padding: 3px 0;
+            font-weight: bold;
+            margin-bottom: 8px;
+            border-radius: 3px;
+        }
+        .answer-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .q-num {
+            width: 24px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            text-align: right;
+            margin-right: 8px;
+        }
+        .circles {
+            display: flex;
+            gap: 5px;
+        }
+        .circle {
+            width: 22px;
+            height: 22px;
+            border: 1.5px solid #e67e22;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: #e67e22;
+            cursor: pointer;
+            user-select: none;
+            background: #fff;
+        }
+        /* Haqiqiy imtihondagidek ko'k ruchkada bo'yash effekti */
+        .circle.filled {
+            background-color: #0000ff !important;
+            border-color: #0000ff !important;
+            color: #0000ff !important;
+        }
+        .submit-btn {
+            width: 100%;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dtm-card">
+    <div class="dtm-header">
+        <div class="dtm-logo">DTM</div>
+        <div class="dtm-title">JAVOBLAR VARAQASI</div>
+    </div>
+
+    <div class="warning-text">
+        ABITURIYENT DIQQATIGA!<br>
+        Har bir test topshirig'idagi javoblardan faqat bittasini belgilang. Doirachani ko'k rangli pasta bilan to'liq bo'yang.
+    </div>
+
+    <div class="info-section">
+        <div class="info-group">
+            <label>Abituriyent F.I.O:</label>
+            <input type="text" id="fullname" placeholder="Familiya Ism Sharifingiz">
+        </div>
+        <div class="info-group">
+            <label>Test kodi:</label>
+            <input type="number" id="testcode" placeholder="Masalan: 1024">
+        </div>
+    </div>
+
+    <div class="matrix-container">
+        <div>
+            <div class="block-title">1 - 15 gacha</div>
+            <div id="block-1"></div>
+        </div>
+        <div>
+            <div class="block-title">16 - 30 gacha</div>
+            <div id="block-2"></div>
+        </div>
+    </div>
+
+    <button class="submit-btn" onclick="sendToTelegramBot()">Varaqani topshirish</button>
+</div>
+
+<script>
+    const totalQuestions = 30;
+    let selectedAnswers = {};
+
+    // Doirachalarni sahifaga yuklash
+    const block1 = document.getElementById('block-1');
+    const block2 = document.getElementById('block-2');
+
+    for (let i = 1; i <= totalQuestions; i++) {
+        selectedAnswers[i] = ''; // boshida bo'sh
+
+        const row = document.createElement('div');
+        row.className = 'answer-row';
+        row.innerHTML = `
+            <div class="q-num">${i}</div>
+            <div class="circles">
+                <div class="circle" onclick="paintCircle(${i}, 'A', this)">A</div>
+                <div class="circle" onclick="paintCircle(${i}, 'B', this)">B</div>
+                <div class="circle" onclick="paintCircle(${i}, 'C', this)">C</div>
+                <div class="circle" onclick="paintCircle(${i}, 'D', this)">D</div>
+            </div>
+        `;
+
+        if (i <= 15) {
+            block1.appendChild(row);
+        } else {
+            block2.appendChild(row);
+        }
+    }
+
+    // Doirachani ruchkada bo'yash funksiyasi
+    function paintCircle(qNum, option, element) {
+        const parent = element.parentElement;
+        const siblings = parent.getElementsByClassName('circle');
+        
+        // Agar o'sha doiracha allaqachon bo'yalgan bo'lsa, ustiga qayta bossa o'chadi
+        if (element.classList.contains('filled')) {
+            element.classList.remove('filled');
+            selectedAnswers[qNum] = '';
+            return;
+        }
+
+        // Qatordagi boshqa bo'yalgan doirachalarni tozalash (faqat bittasini bo'yash mumkin)
+        for (let sib of siblings) {
+            sib.classList.remove('filled');
+        }
+
+        // Yangi tanlangan doirachani bo'yash
+        element.classList.add('filled');
+        selectedAnswers[qNum] = option;
+    }
+
+    // Ma'lumotlarni Telegram botga qaytarish
+    function sendToTelegramBot() {
+        const name = document.getElementById('fullname').value.trim();
+        const code = document.getElementById('testcode').value.trim();
+
+        if (!name || !code) {
+            alert("Iltimos, ismingiz va test kodini to'liq kiriting!");
+            return;
+        }
+
+        // Kalitlarni ketma-ket yig'ish (masalan: ABCABCD...)
+        let answersSequence = '';
+        for (let i = 1; i <= totalQuestions; i++) {
+            if (!selectedAnswers[i]) {
+                alert(`Iltimos, ${i}-savolni bo'yang!`);
+                return;
+            }
+            answersSequence += selectedAnswers[i];
+        }
+
+        // Telegram obyekti orqali botga uzatish
+        const tg = window.Telegram.WebApp;
+        
+        const resultData = {
+            student_name: name,
+            test_code: code,
+            answers: answersSequence
+        };
+
+        tg.sendData(JSON.stringify(resultData));
+        tg.close(); // Oynani yopish
+    }
+</script>
+
+</body>
+</html>
